@@ -1,6 +1,7 @@
 from rest_framework.generics import ListCreateAPIView, RetrieveAPIView
 from rest_framework.permissions import IsAuthenticated
 from core.authentication import TokenAuthentication
+from core.permission import CanAccessRoom
 from .serializers import CreateRoomSerializer, ListRoomSerializer, RetrieveRoomSerializer
 from .models import Room
 
@@ -19,4 +20,4 @@ class RetrieveRoomView(RetrieveAPIView):
     serializer_class = RetrieveRoomSerializer
     queryset = Room.objects.prefetch_related('players')
     authentication_classes = [TokenAuthentication]
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, CanAccessRoom]
