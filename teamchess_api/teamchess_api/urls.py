@@ -17,5 +17,5 @@ Including another URLconf
 from django.urls import include, path
 
 urlpatterns = [
-    path('room', include('room.urls'))
+    path('', include('room.urls'))
 ]

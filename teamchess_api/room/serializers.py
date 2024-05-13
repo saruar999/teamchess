@@ -1,4 +1,5 @@
 from rest_framework.serializers import ModelSerializer, CharField, ChoiceField
+from rest_framework.exceptions import ValidationError
 from core.authentication import TokenAuthentication
 from .models import Room, Player
 
@@ -13,14 +14,23 @@ class CreateRoomSerializer(ModelSerializer):
 
     class Meta:
         model = Room
-        fields = ['name', 'type', 'player_name', 'player_team', 'token', 'room_id']
+        fields = ['name', 'type', 'player_name', 'player_team', 'token', 'room_id', 'password']
         extra_kwargs = {
             'name': dict(write_only=True),
-            'type': dict(write_only=True)
+            'type': dict(write_only=True),
+            'password': dict(write_only=True, required=False)
         }
 
+    def validate(self, attrs):
+        attrs = super(CreateRoomSerializer, self).validate(attrs)
+        if attrs.get('type') == Room.RoomTypeChoices.PRIVATE and not attrs.get('password'):
+            raise ValidationError({'password': ['Password is required for private rooms.']})
+        return attrs
+
     def create(self, validated_data):
-        room = Room.objects.create(name=validated_data.get('name'), type=validated_data.get('type'))
+        room = Room.objects.create(
+            name=validated_data.get('name'), type=validated_data.get('type'), password=validated_data.get('password')
+        )
         player = Player.objects.create(
             name=validated_data.get('player_name'), team=validated_data.get('player_team'), is_game_manager=True,
             room=room

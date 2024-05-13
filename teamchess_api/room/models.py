@@ -1,5 +1,6 @@
 from django.db import models
 from uuid import uuid4
+from django_cryptography.fields import encrypt
 
 
 class Room(models.Model):
@@ -20,6 +21,7 @@ class Room(models.Model):
     status = models.CharField(choices=RoomStatusChoices.choices, max_length=10, default=RoomStatusChoices.WAITING)
     # game = models.OneToOneField(to='game.models.Game', on_delete=models.CASCADE, null=True, default=None)
     created_at = models.DateTimeField(auto_now_add=True)
+    password = encrypt(models.CharField(max_length=100, null=True, default=None))
 
 
 class Player(models.Model):
