@@ -1,0 +1,35 @@
+version: '3'
+services:
+    teamchess_db:
+        image: postgres:14-alpine
+        container_name: teamchess_db
+        volumes:
+            - primary_postgres_data:/var/lib/postgresql/data
+        environment:
+            - POSTGRES_DB=teamchess
+            - POSTGRES_USER=team
+            - POSTGRES_PASSWORD=chess
+        restart: always
+        ports:
+            - "15432:5432"
+        expose:
+            - 15432
+
+    teamchess_app:
+        container_name: teamchess_app
+        build:
+            dockerfile: ./docker/Dockerfile
+        env_file:
+            - .env
+        command: python ./manage.py runserver 0.0.0.0:8000
+        volumes:
+            - .:/app
+        ports:
+            - "8000:8000"
+        depends_on:
+            - teamchess_db
+        expose:
+            - 8000
+
+volumes:
+    primary_postgres_data:
