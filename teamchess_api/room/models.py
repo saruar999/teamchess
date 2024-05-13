@@ -23,6 +23,9 @@ class Room(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     password = encrypt(models.CharField(max_length=100, null=True, default=None))
 
+    class Meta:
+        ordering = ['-created_at']
+
 
 class Player(models.Model):
     REQUIRED_FIELDS = []
