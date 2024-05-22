@@ -35,6 +35,7 @@ ALLOWED_HOSTS = ['*']
 # Application definition
 
 INSTALLED_APPS = [
+    'daphne',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -75,7 +76,18 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'teamchess_api.wsgi.application'
+REDIS_HOST = f"redis://:{env.str('REDIS_PASSWORD')}@{env.str('REDIS_HOST')}:{env.str('REDIS_PORT')}/{env.str('REDIS_DB')}"
+
+ASGI_APPLICATION = 'teamchess_api.asgi.application'
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [REDIS_HOST],
+            "symmetric_encryption_keys": [SECRET_KEY],
+        },
+    },
+}
 
 
 # Database
