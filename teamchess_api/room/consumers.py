@@ -1,6 +1,7 @@
 from channels.generic.websocket import JsonWebsocketConsumer
 from django.contrib.auth.models import AnonymousUser
 from asgiref.sync import async_to_sync
+from .models import Player, Room
 
 
 class RoomConsumer(JsonWebsocketConsumer):
@@ -12,6 +13,11 @@ class RoomConsumer(JsonWebsocketConsumer):
     @async_to_sync
     async def emit_to_group(self, content):
         await self.channel_layer.group_send(str(self.room_id), {**content, 'type': 'emit.message'})
+        
+    def set_player_channel_name(self):
+        user = self.scope['user']
+        user.channel_name = self.channel_name
+        user.save()
         
     def serialize_user(self, user):
         return {'id': user.id, 'name': user.name, 'team': user.team, 'is_game_manager': user.is_game_manager}
@@ -27,6 +33,7 @@ class RoomConsumer(JsonWebsocketConsumer):
 
         self.accept()
         self.add_client_to_room()
+        self.set_player_channel_name()
         self.emit_to_group(
             {
                 'message': 'player_joined_room', 
@@ -47,4 +54,14 @@ class RoomConsumer(JsonWebsocketConsumer):
                 'data': {'user': self.serialize_user(self.scope['user'])}
             }
         )
-        return super().disconnect(code)
+        user = self.scope['user']
+        user.delete()
+    
+    def kick_client(self, event):
+        self.emit_to_group(
+            {
+                'message': 'player_kicked',
+                'data': {'user': self.serialize_user(self.scope['user'])}
+            }
+        )
+        self.close()

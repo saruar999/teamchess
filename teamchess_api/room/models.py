@@ -40,6 +40,7 @@ class Player(models.Model):
     team = models.CharField(choices=TeamChoices.choices, max_length=5)
     is_game_manager = models.BooleanField(default=False)
     room = models.ForeignKey(to=Room, on_delete=models.CASCADE, related_name='players')
+    channel_name = models.CharField(max_length=200, default=None, null=True)
 
     @property
     def is_authenticated(self):

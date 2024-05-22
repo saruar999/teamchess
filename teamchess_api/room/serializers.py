@@ -1,7 +1,9 @@
-from rest_framework.serializers import ModelSerializer, CharField, ChoiceField
+from rest_framework.serializers import ModelSerializer, CharField, ChoiceField, Serializer
 from rest_framework.exceptions import ValidationError
 from core.authentication import TokenAuthentication
 from .models import Room, Player
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
 
 
 class CreateRoomSerializer(ModelSerializer):
@@ -102,3 +104,20 @@ class JoinRoomSerializer(ModelSerializer):
         )
         token = TokenAuthentication().generate_token(player)
         return {'token': token}
+
+
+class KickPlayerSerializer(Serializer):
+    
+    class Meta:
+        fields = []
+        
+    @async_to_sync
+    async def disconnect_client_from_websocket(self, channel_name):
+        channel_layer = get_channel_layer()
+        await channel_layer.send(channel_name, {'type': 'kick.client', 'code': 0})
+        
+    
+    def update(self, instance, validated_data):
+        self.disconnect_client_from_websocket(instance.channel_name)
+        instance.delete()
+        return {}
