@@ -18,8 +18,9 @@ class RoomConsumer(JsonWebsocketConsumer):
         user = self.scope['user']
         user.channel_name = self.channel_name
         user.save()
-        
-    def serialize_user(self, user):
+    
+    @staticmethod
+    def serialize_user(user):
         return {'id': user.id, 'name': user.name, 'team': user.team, 'is_game_manager': user.is_game_manager}
 
     def connect(self):
@@ -65,3 +66,9 @@ class RoomConsumer(JsonWebsocketConsumer):
             }
         )
         self.close()
+
+    def player_team_changed(self, event):
+        self.send_json({'message': 'player_color_changed'})
+    
+    def players_swapped(self, event):
+        self.send_json({'message': 'players_swapped'})

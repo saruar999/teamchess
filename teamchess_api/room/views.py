@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from core.authentication import TokenAuthentication
 from core.permission import CanAccessRoom, CanManipulatePlayer
-from .serializers import CreateRoomSerializer, ListRoomSerializer, RetrieveRoomSerializer, JoinRoomSerializer, KickPlayerSerializer
+from . import serializers
 from .models import Room, Player
 
 
@@ -13,20 +13,20 @@ class ListCreateRoomView(ListCreateAPIView):
 
     def get_serializer_class(self):
         if self.request.method == 'GET':
-            return ListRoomSerializer
+            return serializers.ListRoomSerializer
         else:
-            return CreateRoomSerializer
+            return serializers.CreateRoomSerializer
 
 
 class RetrieveRoomView(RetrieveAPIView):
-    serializer_class = RetrieveRoomSerializer
+    serializer_class = serializers.RetrieveRoomSerializer
     queryset = Room.objects.prefetch_related('players')
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated, CanAccessRoom]
 
 
 class JoinRoomView(CreateAPIView):
-    serializer_class = JoinRoomSerializer
+    serializer_class = serializers.JoinRoomSerializer
     queryset = Room.objects.all()
 
     def create(self, request, *args, **kwargs):
@@ -38,7 +38,20 @@ class JoinRoomView(CreateAPIView):
 
 
 class KickPlayerView(CreateAPIView):
-    serializer_class = KickPlayerSerializer
+    serializer_class = serializers.KickPlayerSerializer
+    queryset = Player.objects.all()
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated, CanManipulatePlayer]
+    
+    def create(self, request, *args, **kwargs):
+        player = self.get_object()
+        serializer = self.get_serializer(player, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        return Response(status=status.HTTP_200_OK)
+
+class ChangePlayerTeamView(CreateAPIView):
+    serializer_class = serializers.ChangePlayerColorSerializer
     queryset = Player.objects.all()
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated, CanManipulatePlayer]
@@ -50,3 +63,16 @@ class KickPlayerView(CreateAPIView):
         self.perform_create(serializer)
         return Response(status=status.HTTP_200_OK)
     
+
+class SwapPlayerView(CreateAPIView):
+    serializer_class = serializers.SwapPlayerSerializer
+    queryset = Player.objects.all()
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated, CanManipulatePlayer]
+    
+    def create(self, request, *args, **kwargs):
+        player = self.get_object()
+        serializer = self.get_serializer(player, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        return Response(status=status.HTTP_200_OK)
