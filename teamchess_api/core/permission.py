@@ -18,9 +18,7 @@ class CanManipulatePlayer(BasePermission):
     """
     
     def has_permission(self, request, view):
-        print(request.user.is_game_manager)
         return request.user.is_game_manager
     
     def has_object_permission(self, request, view, obj):
-        print(obj.room, request.user.room)
         return obj.room == request.user.room
