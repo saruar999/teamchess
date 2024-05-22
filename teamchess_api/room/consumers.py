@@ -1,16 +1,50 @@
-from channels.generic.websocket import WebsocketConsumer
+from channels.generic.websocket import JsonWebsocketConsumer
 from django.contrib.auth.models import AnonymousUser
+from asgiref.sync import async_to_sync
 
 
-class RoomConsumer(WebsocketConsumer):
+class RoomConsumer(JsonWebsocketConsumer):
+    
+    @async_to_sync
+    async def add_client_to_room(self):
+        await self.channel_layer.group_add(str(self.room_id), self.channel_name)
+        
+    @async_to_sync
+    async def emit_to_group(self, content):
+        await self.channel_layer.group_send(str(self.room_id), {**content, 'type': 'emit.message'})
+        
+    def serialize_user(self, user):
+        return {'id': user.id, 'name': user.name, 'team': user.team, 'is_game_manager': user.is_game_manager}
 
     def connect(self):
         user = self.scope['user']
         if isinstance(user, AnonymousUser):
             self.close()
 
-        room_id = self.scope['url_route']['kwargs']['pk']
-        if user.room.id != room_id:
+        self.room_id = self.scope['url_route']['kwargs']['pk']
+        if user.room.id != self.room_id:
             self.close()
 
         self.accept()
+        self.add_client_to_room()
+        self.emit_to_group(
+            {
+                'message': 'player_joined_room', 
+                'data': {'user': self.serialize_user(user)}
+            }
+        )
+
+    def emit_message(self, event):
+        self.send_json({
+            'message': event['message'],
+            'data': event['data']
+        })
+    
+    def disconnect(self, code):
+        self.emit_to_group(
+            {
+                'message': 'player_left_room',
+                'data': {'user': self.serialize_user(self.scope['user'])}
+            }
+        )
+        return super().disconnect(code)
