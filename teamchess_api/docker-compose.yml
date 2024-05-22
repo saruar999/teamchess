@@ -28,8 +28,28 @@ services:
             - "8000:8000"
         depends_on:
             - teamchess_db
+            - teamchess_redis
         expose:
             - 8000
+    teamchess_redis:
+        image: bitnami/redis:latest
+        container_name: teamchess_redis
+        restart: always
+        volumes:
+            - primary_redis_data:/root/redis
+            - primary_redis_conf:/usr/local/etc/redis/redis.conf
+        ports:
+            - "16379:6379"
+        environment:
+            - REDIS_PASSWORD=password
+            - REDIS_PORT=6379
+            - REDIS_DATABASES=1
+        expose:
+            - 16379
+
 
 volumes:
     primary_postgres_data:
+    primary_redis_data:
+    primary_redis_conf:
+
