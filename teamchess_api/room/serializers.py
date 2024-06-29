@@ -1,6 +1,6 @@
 from rest_framework.serializers import ModelSerializer, CharField, ChoiceField, Serializer, IntegerField
 from rest_framework.exceptions import ValidationError
-from core.authentication import TokenAuthentication
+from .auth import TokenAuthentication
 from .models import Room, Player
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync

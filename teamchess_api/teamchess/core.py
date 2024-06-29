@@ -5,17 +5,12 @@ class ChessGame:
 
     def __init__(self):
         board = chess.Board()
-        board.push_san('d4')
-        board.push_san('e5')
-        # move = chess.Move.from_uci('d4d5')
-        for piece in board.pieces(chess.PAWN, chess.WHITE):
-            print(chess.square_name(piece))
-        # board.push_san('d4e5')
-        # board.push_san('f8b4')
-        # print(bool(board.is_check()))
+        board.set_fen('3rk2r/5p2/4p3/pN2Pnp1/R6p/7P/2P2PPB/4K1R1 b k - 0 28')
+        board.push_san('d8d2')
+        print(board.is_check())
+        print(board.fen())
         # for move in board.legal_moves:
         #     print(move)
-        #     print(board.castling_rights)
 
 
-print(ChessGame())
+ChessGame()

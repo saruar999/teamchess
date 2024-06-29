@@ -2,8 +2,8 @@ from rest_framework.generics import ListCreateAPIView, RetrieveAPIView, CreateAP
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
-from core.authentication import TokenAuthentication
-from core.permission import CanAccessRoom, CanManipulatePlayer
+from .auth import TokenAuthentication
+from .permission import CanAccessRoom, CanManipulatePlayer
 from . import serializers
 from .models import Room, Player
 
