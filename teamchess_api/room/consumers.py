@@ -1,7 +1,6 @@
 from channels.generic.websocket import JsonWebsocketConsumer
 from django.contrib.auth.models import AnonymousUser
 from asgiref.sync import async_to_sync
-from .models import Player, Room
 
 
 class RoomConsumer(JsonWebsocketConsumer):
@@ -9,6 +8,10 @@ class RoomConsumer(JsonWebsocketConsumer):
     @async_to_sync
     async def add_client_to_room(self):
         await self.channel_layer.group_add(str(self.room_id), self.channel_name)
+        
+    @async_to_sync
+    async def remove_client_from_room(self):
+        await self.channel_layer.group_discard(str(self.room_id), self.channel_name)
         
     @async_to_sync
     async def emit_to_group(self, content):
@@ -59,6 +62,7 @@ class RoomConsumer(JsonWebsocketConsumer):
         user.delete()
     
     def kick_client(self, event):
+        self.remove_client_from_room()
         self.emit_to_group(
             {
                 'message': 'player_kicked',

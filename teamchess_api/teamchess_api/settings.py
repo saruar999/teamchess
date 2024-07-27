@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework.authtoken',
     'room',
+    'player'
 ]
 
 MIDDLEWARE = [
@@ -138,4 +139,4 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [],
 }
 
-AUTH_USER_MODEL = 'room.Player'
+AUTH_USER_MODEL = 'player.Player'

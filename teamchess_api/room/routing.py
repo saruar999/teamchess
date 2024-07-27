@@ -1,7 +1,7 @@
 from channels.routing import URLRouter
 from django.urls import path
 from .consumers import RoomConsumer
-from .auth import RoomWebSocketAuthentication
+from player.auth import RoomWebSocketAuthentication
 
 
 websocket_urlpatterns = RoomWebSocketAuthentication(URLRouter([
