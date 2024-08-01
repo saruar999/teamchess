@@ -1,0 +1,6 @@
+SPADE = '♠'
+HEART = '♥'
+DIAMOND = '♦'
+CLUB = '♣'
+
+PLAYER_SYMBOLS = [SPADE, HEART, DIAMOND, CLUB]
