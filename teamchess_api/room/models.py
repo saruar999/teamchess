@@ -19,7 +19,7 @@ class Room(models.Model):
     name = models.CharField(max_length=50)
     type = models.CharField(choices=RoomTypeChoices.choices, max_length=10)
     status = models.CharField(choices=RoomStatusChoices.choices, max_length=10, default=RoomStatusChoices.WAITING)
-    # game = models.OneToOneField(to='game.models.Game', on_delete=models.CASCADE, null=True, default=None)
+    # game = models.OneToOneField(to='game.Game', on_delete=models.CASCADE, null=True, default=None)
     created_at = models.DateTimeField(auto_now_add=True)
     password = encrypt(models.CharField(max_length=100, null=True, default=None))
 
