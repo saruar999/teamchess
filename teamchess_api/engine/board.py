@@ -1,13 +1,8 @@
 import dataclasses
-import itertools
 import random
-
 import chess
-from typing import List, Optional, Iterator
-import chess.variant
-from chess import Bitboard, BB_ALL, Move
+from typing import List, Optional
 
-# from player.models import Player
 
 SPADE = '♠'
 HEART = '♥'
