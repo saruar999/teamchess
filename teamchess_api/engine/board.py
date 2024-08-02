@@ -270,13 +270,43 @@ class TeamChessBoard(chess.Board):
 
         return move
 
+    def _check_move_against_current_player(self, move: chess.Move) -> bool:
+        return self.player_squares[move.from_square]['player'] == self.current_turn_player
+
     def generate_legal_moves(self, from_mask: Bitboard = BB_ALL, to_mask: Bitboard = BB_ALL) -> Iterator[Move]:
         """
         Overriding the generation of legal moves, in order to filter out moves of pieces that
         do not belong to the current turn player.
         """
         for move in super().generate_legal_moves(from_mask, to_mask):
-            if self.player_squares[move.from_square]['player'] == self.current_turn_player:
+            if self._check_move_against_current_player(move):
+                yield move
+
+    def generate_legal_ep(self, from_mask: Bitboard = BB_ALL, to_mask: Bitboard = BB_ALL) -> Iterator[Move]:
+        """
+        Overriding the generation of legal ep moves, in order to filter out moves of pieces that
+        do not belong to the current turn player.
+        """
+        for move in super().generate_legal_ep(from_mask, to_mask):
+            if self._check_move_against_current_player(move):
+                yield move
+
+    def generate_castling_moves(self, from_mask: Bitboard = BB_ALL, to_mask: Bitboard = BB_ALL) -> Iterator[Move]:
+        """
+        Overriding the generation of legal castling moves, in order to filter out moves of pieces that
+        do not belong to the current turn player.
+        """
+        for move in super().generate_castling_moves(from_mask, to_mask):
+            if self._check_move_against_current_player(move):
+                yield move
+
+    def generate_legal_captures(self, from_mask: Bitboard = BB_ALL, to_mask: Bitboard = BB_ALL) -> Iterator[Move]:
+        """
+        Overriding the generation of legal captures, in order to filter out moves of pieces that
+        do not belong to the current turn player.
+        """
+        for move in super().generate_legal_captures(from_mask, to_mask):
+            if self._check_move_against_current_player(move):
                 yield move
 
     def __init__(
@@ -292,8 +322,6 @@ class TeamChessBoard(chess.Board):
         super().__init__(fen, chess960=chess960)
 
         if fen == chess.STARTING_FEN:
-            # Start a new game
+            # when starting a new game, randomly allocate pieces to each player
             self._allocate_white_squares()
             self._allocate_black_squares()
-
-        self.is_checkmate()
