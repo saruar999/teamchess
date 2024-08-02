@@ -4,6 +4,7 @@ from player.auth import TokenAuthentication
 from .models import Room
 from player.models import Player
 from player.serializers import PlayerSerializer
+from engine.constants import *
 
 
 class CreateRoomSerializer(ModelSerializer):
@@ -35,7 +36,7 @@ class CreateRoomSerializer(ModelSerializer):
         )
         player = Player.objects.create(
             name=validated_data.get('player_name'), team=validated_data.get('player_team'), is_game_manager=True,
-            room=room
+            room=room, player_symbol=SPADE
         )
         token = TokenAuthentication().generate_token(player)
         return {'token': token.key, 'room_id': room.id}
@@ -46,6 +47,7 @@ class ListRoomSerializer(ModelSerializer):
     class Meta:
         model = Room
         fields = ['id', 'name', 'type', 'status', 'created_at']
+
 
 class RetrieveRoomSerializer(ListRoomSerializer):
 
@@ -81,18 +83,19 @@ class JoinRoomSerializer(ModelSerializer):
             if attrs.get('password') != self.instance.password:
                 raise ValidationError({'password': ['Password is incorrect.']})
 
-        white_count = current_players.filter(team=Player.TeamChoices.WHITE).count()
-        if white_count < 2:
-            team = Player.TeamChoices.WHITE
-        else:
-            team = Player.TeamChoices.BLACK
+        # Assigning player symbol to the player.
+        player_symbol = None
+        for symbol in PLAYER_SYMBOLS:
+            if not current_players.filter(player_symbol=symbol).exists():
+                player_symbol = symbol
 
-        attrs.update(team=team)
+        attrs.update(player_symbol=player_symbol)
         return attrs
 
     def update(self, instance, validated_data):
         player = Player.objects.create(
-            name=validated_data.get('player_name'), team=validated_data.get('team'), room=instance
+            name=validated_data.get('player_name'), room=instance,
+            player_symbol=validated_data.get('player_symbol')
         )
         token = TokenAuthentication().generate_token(player)
         return {'token': token}

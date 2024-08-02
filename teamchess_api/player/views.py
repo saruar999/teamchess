@@ -25,9 +25,6 @@ class KickPlayerView(BaseManipulatePlayerView):
     serializer_class = serializers.KickPlayerSerializer
 
 
-class ChangePlayerTeamView(BaseManipulatePlayerView):
-    serializer_class = serializers.ChangePlayerColorSerializer
-    
+class ChangePlayerSymbolView(BaseManipulatePlayerView):
+    serializer_class = serializers.ChangePlayerSymbolSerializer
 
-class SwapPlayerView(BaseManipulatePlayerView):
-    serializer_class = serializers.SwapPlayerSerializer
