@@ -1,6 +1,9 @@
 import random
 import chess
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Iterator
+
+from chess import Square, PieceType, Color, Move, Bitboard, BB_ALL
+
 from .constants import *
 from .definitions import Player, PlayerSquareValue
 
@@ -203,6 +206,7 @@ class TeamChessBoard(chess.Board):
                     previous_was_piece = True
                     previous_was_symbol = False
                 elif c in PLAYER_SYMBOLS:
+                    # validating player symbols inside fen
                     if previous_was_symbol:
                         raise ValueError(f"two subsequent player symbols in position part of fen: {fen!r}")
                     if not previous_was_piece:
@@ -230,6 +234,8 @@ class TeamChessBoard(chess.Board):
                 self._set_piece_at(chess.SQUARES_180[square_index], piece.piece_type, piece.color)
                 square_index += 1
             elif c in PLAYER_SYMBOLS:
+                # handling player symbols by appending the piece that prefixes them to the player squares
+                # dictionary.
                 self.player_squares.update({
                     chess.SQUARES_180[square_index-1]: PlayerSquareValue(
                         player=self.get_player_by_symbol(c),
@@ -238,6 +244,40 @@ class TeamChessBoard(chess.Board):
                 })
             elif c == "~":
                 self.promoted |= chess.BB_SQUARES[chess.SQUARES_180[square_index - 1]]
+
+    def _remove_piece_at(self, square: Square) -> Optional[PieceType]:
+        """
+        Remove square from player squares everytime a piece is removed from a square.
+        """
+        piece_type = super()._remove_piece_at(square)
+        if piece_type is not None:
+            del self.player_squares[square]
+        return piece_type
+
+    def push_san(self, san: str) -> chess.Move:
+        """
+        Update the player squares by adding the to square to the dictionary with the ownership of the same player.
+        Also rotating the player turn to the player next in line.
+        """
+        move = super().push_san(san)
+        player = self.player_squares[move.from_square]['player']
+        self.player_squares[move.to_square] = PlayerSquareValue(
+            player=player,
+            piece=self.piece_at(move.to_square)
+        )
+
+        self.current_turn_player = self.current_turn_player.next_player
+
+        return move
+
+    def generate_legal_moves(self, from_mask: Bitboard = BB_ALL, to_mask: Bitboard = BB_ALL) -> Iterator[Move]:
+        """
+        Overriding the generation of legal moves, in order to filter out moves of pieces that
+        do not belong to the current turn player.
+        """
+        for move in super().generate_legal_moves(from_mask, to_mask):
+            if self.player_squares[move.from_square]['player'] == self.current_turn_player:
+                yield move
 
     def __init__(
         self,
@@ -256,4 +296,4 @@ class TeamChessBoard(chess.Board):
             self._allocate_white_squares()
             self._allocate_black_squares()
 
-        print(self.board_fen())
+        self.is_checkmate()
