@@ -11,7 +11,7 @@ class TeamChessBoard(chess.Board):
     player_of_diamonds: Player
     player_of_clubs: Player
 
-    player_squares: Dict[chess.Square, PlayerSquareValue]
+    player_squares: Dict[chess.Square, PlayerSquareValue] = {}
 
     current_turn_player: Player
 
@@ -115,6 +115,20 @@ class TeamChessBoard(chess.Board):
                 }
             )
 
+    def get_player_by_symbol(self, symbol: str) -> Player:
+        """
+        Returns the player that matches the passed symbol.
+        """
+        try:
+            return {
+                SPADE: self.player_of_spades,
+                DIAMOND: self.player_of_diamonds,
+                HEART: self.player_of_hearts,
+                CLUB: self.player_of_clubs
+            }[symbol]
+        except KeyError:
+            raise ValueError(f'invalid player symbol: {symbol}')
+
     def board_fen(self, *, promoted: Optional[bool] = False) -> str:
         """
         Gets the board custom FEN with player symbol suffixes for each piece
@@ -151,20 +165,93 @@ class TeamChessBoard(chess.Board):
 
         return "".join(builder)
 
+    def _set_board_fen(self, fen: str) -> None:
+        # Compatibility with set_fen().
+        fen = fen.strip()
+        if " " in fen:
+            raise ValueError(f"expected position part of fen, got multiple parts: {fen!r}")
+
+        # Ensure the FEN is valid.
+        rows = fen.split("/")
+        if len(rows) != 8:
+            raise ValueError(f"expected 8 rows in position part of fen: {fen!r}")
+
+        # Validate each row.
+        for row in rows:
+            field_sum = 0
+            previous_was_digit = False
+            previous_was_piece = False
+            previous_was_symbol = False
+
+            for c in row:
+                if c in ["1", "2", "3", "4", "5", "6", "7", "8"]:
+                    if previous_was_digit:
+                        raise ValueError(f"two subsequent digits in position part of fen: {fen!r}")
+                    field_sum += int(c)
+                    previous_was_digit = True
+                    previous_was_piece = False
+                    previous_was_symbol = False
+                elif c == "~":
+                    if not previous_was_piece:
+                        raise ValueError(f"'~' not after piece in position part of fen: {fen!r}")
+                    previous_was_digit = False
+                    previous_was_piece = False
+                    previous_was_symbol = False
+                elif c.lower() in chess.PIECE_SYMBOLS:
+                    field_sum += 1
+                    previous_was_digit = False
+                    previous_was_piece = True
+                    previous_was_symbol = False
+                elif c in PLAYER_SYMBOLS:
+                    if previous_was_symbol:
+                        raise ValueError(f"two subsequent player symbols in position part of fen: {fen!r}")
+                    if not previous_was_piece:
+                        raise ValueError(f"expected a piece before player symbol in position part of fen: {fen!r}")
+                    previous_was_symbol = True
+
+                else:
+                    raise ValueError(f"invalid character in position part of fen: {fen!r}")
+
+            if field_sum != 8:
+                raise ValueError(f"expected 8 columns per row in position part of fen: {fen!r}")
+
+        # Clear the board.
+        self._clear_board()
+
+        # Put pieces on the board.
+        last_piece: chess.Piece | None = None
+        square_index = 0
+        for c in fen:
+            if c in ["1", "2", "3", "4", "5", "6", "7", "8"]:
+                square_index += int(c)
+            elif c.lower() in chess.PIECE_SYMBOLS:
+                piece = chess.Piece.from_symbol(c)
+                last_piece = piece
+                self._set_piece_at(chess.SQUARES_180[square_index], piece.piece_type, piece.color)
+                square_index += 1
+            elif c in PLAYER_SYMBOLS:
+                self.player_squares.update({
+                    chess.SQUARES_180[square_index-1]: PlayerSquareValue(
+                        player=self.get_player_by_symbol(c),
+                        piece=last_piece
+                    )
+                })
+            elif c == "~":
+                self.promoted |= chess.BB_SQUARES[chess.SQUARES_180[square_index - 1]]
+
     def __init__(
         self,
+        fen: str = chess.STARTING_FEN,
         *,
-        fen: str = None,
         chess960: bool = False,
         current_turn_player_symbol: str = None
     ):
-        super().__init__(chess.STARTING_FEN, chess960=chess960)
-        self.player_squares = {}
         self._set_players()
         self._set_player_turns()
         self._set_current_turn_player(current_turn_player_symbol)
+        super().__init__(fen, chess960=chess960)
 
-        if fen is None:
+        if fen == chess.STARTING_FEN:
             # Start a new game
             self._allocate_white_squares()
             self._allocate_black_squares()
