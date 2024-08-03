@@ -26,7 +26,6 @@ class TokenAuthentication(DjangoTokenAuthentication):
         return token.user, token
 
 
-
 class RoomWebSocketAuthentication:
     token_class = Token
 
