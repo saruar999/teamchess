@@ -73,6 +73,3 @@ class RoomConsumer(JsonWebsocketConsumer):
 
     def player_symbol_changed(self, event):
         self.send_json({'message': 'player_symbol_changed'})
-    
-    def players_swapped(self, event):
-        self.send_json({'message': 'players_swapped'})

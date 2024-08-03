@@ -1,5 +1,6 @@
 from rest_framework.serializers import ModelSerializer, CharField, ChoiceField
 from rest_framework.exceptions import ValidationError
+from rest_framework.settings import api_settings
 from player.auth import TokenAuthentication
 from .models import Room
 from player.models import Player
@@ -75,7 +76,7 @@ class JoinRoomSerializer(ModelSerializer):
 
         current_players = self.instance.players.all()
         if current_players.count() == 4:
-            raise ValidationError({'non_field_errors': ['Room is full.']})
+            raise ValidationError({api_settings.NON_FIELD_ERRORS_KEY: ['Room is full.']})
 
         if self.instance.type == Room.RoomTypeChoices.PRIVATE:
             if not attrs.get('password'):

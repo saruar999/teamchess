@@ -45,7 +45,8 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework.authtoken',
     'room',
-    'player'
+    'player',
+    'game'
 ]
 
 MIDDLEWARE = [

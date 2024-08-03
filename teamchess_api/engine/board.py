@@ -21,6 +21,12 @@ class TeamChessBoard(chess.Board):
     white_team_players: List[Player]
     black_team_players: List[Player]
 
+    def get_pieces(self):
+        for square, player_square_value in self.player_squares.items():
+            square_name = chess.square_name(square)
+            piece_name = chess.piece_name(player_square_value['piece'].piece_type)
+            player_symbol = player_square_value['player'].symbol
+
     def _set_players(self):
         """
         Initializes the player node objects with their respective symbols, as well as each color's player list.
