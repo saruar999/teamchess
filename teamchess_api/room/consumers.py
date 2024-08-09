@@ -12,6 +12,8 @@ class RoomConsumer(JsonWebsocketConsumer):
     PLAYER_KICKED = 'player_kicked'
     PLAYER_SYMBOL_CHANGED = 'player_symbol_changed'
     GAME_STARTED = 'game_started'
+
+    # TODO: Update player model to track online/offline status.
     
     @async_to_sync
     async def add_client_to_room(self):
@@ -65,13 +67,14 @@ class RoomConsumer(JsonWebsocketConsumer):
         )
     
     def disconnect(self, code):
-        self.delete_player()
         self.emit_to_group(
             {
                 'message': self.PLAYER_LEFT_ROOM,
                 'data': {'room': self.serialize_room()}
             }
         )
+        self.remove_client_from_room()
+        self.close(code=code)
 
     def player_kicked(self, event):
         self.emit_to_group(
