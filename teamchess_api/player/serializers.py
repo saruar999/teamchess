@@ -2,6 +2,7 @@ from rest_framework.serializers import ModelSerializer, Serializer
 from rest_framework.exceptions import ValidationError
 from rest_framework.settings import api_settings
 from .models import Player
+from room.models import Room
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 
@@ -27,7 +28,11 @@ class KickPlayerSerializer(Serializer):
         attrs = super().validate(attrs)
         if self.instance.is_game_manager:
             raise ValidationError({
-                api_settings.NON_FIELD_ERRORS_KEY: ['Cannot kick game manager.']
+                api_settings.NON_FIELD_ERRORS_KEY: ['Cannot kick game manager']
+            })
+        if self.instance.room.status != Room.RoomStatusChoices.WAITING:
+            raise ValidationError({
+                api_settings.NON_FIELD_ERRORS_KEY: ['Cannot kick players in %s status' % self.instance.room.status]
             })
         return attrs
     
