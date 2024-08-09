@@ -1,5 +1,6 @@
-from rest_framework.serializers import ModelSerializer, Serializer, IntegerField
+from rest_framework.serializers import ModelSerializer, Serializer
 from rest_framework.exceptions import ValidationError
+from rest_framework.settings import api_settings
 from .models import Player
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
@@ -21,6 +22,14 @@ class KickPlayerSerializer(Serializer):
     async def disconnect_client_from_websocket(self, channel_name):
         channel_layer = get_channel_layer()
         await channel_layer.send(channel_name, {'type': 'player.kicked'})
+
+    def validate(self, attrs):
+        attrs = super().validate(attrs)
+        if self.instance.is_game_manager:
+            raise ValidationError({
+                api_settings.NON_FIELD_ERRORS_KEY: ['Cannot kick game manager.']
+            })
+        return attrs
     
     def update(self, instance, validated_data):
         if instance.channel_name:
