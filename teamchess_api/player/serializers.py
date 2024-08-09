@@ -20,7 +20,7 @@ class KickPlayerSerializer(Serializer):
     @async_to_sync
     async def disconnect_client_from_websocket(self, channel_name):
         channel_layer = get_channel_layer()
-        await channel_layer.send(channel_name, {'type': 'kick.client', 'code': 0})
+        await channel_layer.send(channel_name, {'type': 'player.kicked'})
     
     def update(self, instance, validated_data):
         if instance.channel_name:

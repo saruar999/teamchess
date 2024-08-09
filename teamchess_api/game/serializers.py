@@ -1,8 +1,8 @@
 from rest_framework import serializers
 from rest_framework.settings import api_settings
-from rest_framework.validators import UniqueValidator
+from asgiref.sync import async_to_sync
+from channels.layers import get_channel_layer
 
-from engine.constants import PLAYER_SYMBOLS
 from game.models import Game
 from room.models import Room
 from engine.board import TeamChessBoard
@@ -31,14 +31,30 @@ class StartGameSerializer(serializers.ModelSerializer):
             })
         return attrs
 
+    @async_to_sync
+    async def send_game_started_event(self, channel_name):
+        channel_layer = get_channel_layer()
+        await channel_layer.group_send(channel_name, {'type': 'game.started'})
+
     def create(self, validated_data):
         chessboard = TeamChessBoard()
         custom_fen = chessboard.fen()
-
-        fen = custom_fen
-        for player_symbol in PLAYER_SYMBOLS:
-            fen = fen.replace(player_symbol, '')
+        fen = chessboard.get_original_fen()
 
         game = Game.objects.create(room=validated_data.pop('room'), fen=fen, custom_fen=custom_fen)
-        ACTIVE_BOARDS[game.id] = chessboard
+        room = game.room
+        room.status = Room.RoomStatusChoices.IN_GAME
+        room.save()
+
+        ACTIVE_BOARDS[room.id] = chessboard
+
+        self.send_game_started_event(str(room.id))
+
         return game
+
+
+class RetrieveGameSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Game
+        fields = ('id', 'fen', 'custom_fen', 'is_finished')

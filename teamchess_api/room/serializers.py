@@ -1,11 +1,12 @@
 from rest_framework.serializers import ModelSerializer, CharField, ChoiceField
 from rest_framework.exceptions import ValidationError
 from rest_framework.settings import api_settings
+from engine.constants import *
 from player.auth import TokenAuthentication
-from .models import Room
 from player.models import Player
 from player.serializers import PlayerSerializer
-from engine.constants import *
+from game.serializers import RetrieveGameSerializer
+from .models import Room
 
 
 class CreateRoomSerializer(ModelSerializer):
@@ -52,11 +53,11 @@ class ListRoomSerializer(ModelSerializer):
 
 class RetrieveRoomSerializer(ListRoomSerializer):
 
-    game = None
+    game = RetrieveGameSerializer(read_only=True)
     players = PlayerSerializer(many=True)
 
     class Meta(ListRoomSerializer.Meta):
-        fields = ListRoomSerializer.Meta.fields + ['players']
+        fields = ListRoomSerializer.Meta.fields + ['players', 'game']
 
 
 class JoinRoomSerializer(ModelSerializer):

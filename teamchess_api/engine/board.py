@@ -2,7 +2,7 @@ import random
 import chess
 from typing import List, Dict, Optional, Iterator
 
-from chess import Square, PieceType, Color, Move, Bitboard, BB_ALL
+from chess import Square, PieceType, Move, Bitboard, BB_ALL
 
 from .constants import *
 from .definitions import Player, PlayerSquareValue
@@ -22,10 +22,27 @@ class TeamChessBoard(chess.Board):
     black_team_players: List[Player]
 
     def get_pieces(self):
+        """
+        A simple get method that will return all existing pieces on the board along with the occupied square name,
+        player symbol, piece name and color.
+        """
+        pieces = []
         for square, player_square_value in self.player_squares.items():
             square_name = chess.square_name(square)
             piece_name = chess.piece_name(player_square_value['piece'].piece_type)
             player_symbol = player_square_value['player'].symbol
+            color = player_square_value['piece'].color
+            pieces.append(dict(square=square_name, player=player_symbol, piece=piece_name, color=color))
+        return pieces
+
+    def get_original_fen(self):
+        """
+        A simple get method that will return the original fen of the board without player symbols.
+        """
+        fen = self.fen()
+        for player_symbol in PLAYER_SYMBOLS:
+            fen = fen.replace(player_symbol, '')
+        return fen
 
     def _set_players(self):
         """
