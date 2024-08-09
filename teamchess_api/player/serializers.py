@@ -11,7 +11,7 @@ class PlayerSerializer(ModelSerializer):
 
     class Meta:
         model = Player
-        fields = ['id', 'name', 'team', 'player_symbol', 'is_game_manager']
+        fields = ['id', 'name', 'team', 'player_symbol', 'is_game_manager', 'is_online']
 
 
 class KickPlayerSerializer(Serializer):

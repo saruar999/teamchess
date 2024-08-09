@@ -18,6 +18,7 @@ class Player(models.Model):
     room = models.ForeignKey(to='room.Room', on_delete=models.CASCADE, related_name='players')
     channel_name = models.CharField(max_length=200, default=None, null=True)
     player_symbol = models.CharField(max_length=1)
+    is_online = models.BooleanField(default=False)
 
     @property
     def is_authenticated(self):
