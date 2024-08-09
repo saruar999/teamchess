@@ -70,8 +70,9 @@ class RoomConsumer(AsyncJsonWebsocketConsumer):
         if room.id != self.room_id:
             await self.close(code=3003, reason='Player room does not match this room')
 
-        if user.is_online:
-            await self.close(code=3003, reason='Player already online on different client')
+        # TODO: uncomment this line when going live, its annoying right now
+        # if user.is_online:
+        #     await self.close(code=3003, reason='Player already online on different client')
 
         await self.accept()
         await self.add_client_to_room()

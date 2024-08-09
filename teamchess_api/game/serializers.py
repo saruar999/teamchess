@@ -25,7 +25,7 @@ class StartGameSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({
                 api_settings.NON_FIELD_ERRORS_KEY: ['Game has already started.']
             })
-        if room.players.count() != 4:
+        if room.players.filter(is_online=True).count() != 4:
             raise serializers.ValidationError({
                 api_settings.NON_FIELD_ERRORS_KEY: ['Cannot start game with less than 4 players.']
             })
